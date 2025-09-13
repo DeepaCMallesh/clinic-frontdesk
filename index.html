@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Front Desk System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .container-card {
+            background-color: #2a2a2a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .text-gradient {
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-waiting { background-color: #ffc107; color: #333; }
+        .badge-with-doctor { background-color: #28a745; color: white; }
+        .badge-completed { background-color: #6c757d; color: white; }
+        .badge-available { background-color: #28a745; color: white; }
+        .badge-busy { background-color: #ffc107; color: #333; }
+        .badge-off-duty { background-color: #dc3545; color: white; }
+        .badge-booked { background-color: #3498db; color: white; }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .tab-btn {
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #9ca3af;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #fff;
+            border-bottom-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-10">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen">
+        <div class="container-card w-full max-w-sm p-6">
+            <h1 class="text-3xl font-bold text-center text-white mb-6">
+                <span class="text-gradient">Front Desk</span> Login
+            </h1>
+            <form id="login-form" class="space-y-4">
+                <input type="text" id="username" placeholder="Username" class="w-full bg-gray-700 text-white rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="password" placeholder="Password" class="w-full bg-gray-700 text-white rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="w-full btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Container -->
+    <div id="dashboard-screen" class="max-w-6xl mx-auto space-y-8 hidden">
+        <h1 class="text-3xl md:text-4xl font-bold text-white text-center mb-10">
+            <span class="text-gradient">Clinic Front Desk</span> Dashboard
+        </h1>
+
+        <!-- Navigation Tabs -->
+        <div class="flex justify-center mb-6 border-b border-gray-700">
+            <button id="queue-tab" class="tab-btn active">Queue Management</button>
+            <button id="doctors-tab" class="tab-btn">Doctor Management</button>
+            <button id="appointments-tab" class="tab-btn">Appointments</button>
+        </div>
+
+        <!-- Queue Management Section -->
+        <div id="queue-section" class="container-card">
+            <h2 class="text-2xl font-bold mb-4">Patient Queue</h2>
+            <div class="mb-4">
+                <input id="patientNameInput" type="text" placeholder="New patient name" class="w-full bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <button id="addPatientBtn" class="w-full btn-primary mb-6">Add New Patient to Queue</button>
+            
+            <div id="queueList" class="space-y-4">
+                <!-- Queue items will be injected here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Doctor Management Section -->
+        <div id="doctors-section" class="container-card hidden">
+            <h2 class="text-2xl font-bold mb-4">Doctor Management</h2>
+            <div class="mb-6 space-y-4 md:space-y-0 md:flex md:space-x-4">
+                <input id="doctorNameInput" type="text" placeholder="Doctor's Name" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="specializationInput" type="text" placeholder="Specialization" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="genderInput" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <input id="locationInput" type="text" placeholder="Location" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button id="addDoctorBtn" class="w-full btn-primary mb-6">Add New Doctor</button>
+            
+            <div id="doctorsList" class="space-y-4">
+                <!-- Doctor items will be injected here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Appointment Management Section -->
+        <div id="appointments-section" class="container-card hidden">
+            <h2 class="text-2xl font-bold mb-4">Appointment Management</h2>
+            
+            <h3 class="text-xl font-bold mb-2">Book a New Appointment</h3>
+            <div class="mb-6 space-y-4 md:space-y-0 md:flex md:space-x-4">
+                <input id="appointmentPatientInput" type="text" placeholder="Patient Name" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="appointmentDoctorSelect" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Doctor</option>
+                </select>
+                <input id="appointmentDateInput" type="date" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="appointmentTimeInput" type="time" class="flex-1 bg-gray-700 text-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button id="bookAppointmentBtn" class="w-full btn-primary mb-6">Book Appointment</button>
+
+            <h3 class="text-xl font-bold mb-4">All Appointments</h3>
+            <div id="appointmentsList" class="space-y-4">
+                <!-- Appointment items will be injected here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://clinic-frontdesk.onrender.com';
+        let doctorsData = []; // Global variable to store doctor data
+
+        // --- DOM Elements ---
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const loginForm = document.getElementById('login-form');
+        
+        const queueTab = document.getElementById('queue-tab');
+        const doctorsTab = document.getElementById('doctors-tab');
+        const appointmentsTab = document.getElementById('appointments-tab');
+
+        const queueSection = document.getElementById('queue-section');
+        const doctorsSection = document.getElementById('doctors-section');
+        const appointmentsSection = document.getElementById('appointments-section');
+
+        const queueListEl = document.getElementById('queueList');
+        const doctorsListEl = document.getElementById('doctorsList');
+        const appointmentsListEl = document.getElementById('appointmentsList');
+
+        const patientNameInput = document.getElementById('patientNameInput');
+        const addPatientBtn = document.getElementById('addPatientBtn');
+
+        const doctorNameInput = document.getElementById('doctorNameInput');
+        const specializationInput = document.getElementById('specializationInput');
+        const genderInput = document.getElementById('genderInput');
+        const locationInput = document.getElementById('locationInput');
+        const addDoctorBtn = document.getElementById('addDoctorBtn');
+
+        const appointmentPatientInput = document.getElementById('appointmentPatientInput');
+        const appointmentDoctorSelect = document.getElementById('appointmentDoctorSelect');
+        const appointmentDateInput = document.getElementById('appointmentDateInput');
+        const appointmentTimeInput = document.getElementById('appointmentTimeInput');
+        const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
+
+        // --- Functions to Render Sections ---
+
+        // Display a specific section and hide others
+        function showSection(sectionId) {
+            const sections = [queueSection, doctorsSection, appointmentsSection];
+            sections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            const tabs = [queueTab, doctorsTab, appointmentsTab];
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(`${sectionId.replace('-section', '')}-tab`).classList.add('active');
+        }
+        
+        // Function to render the patient queue
+        async function renderQueue() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/queue`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const queue = await response.json();
+                
+                queueListEl.innerHTML = '';
+                if (queue.length === 0) {
+                    queueListEl.innerHTML = '<p class="text-gray-400 text-center">The queue is empty.</p>';
+                } else {
+                    queue.forEach((patient, index) => {
+                        const statusBadgeClass = {
+                            'Waiting': 'badge-waiting',
+                            'With Doctor': 'badge-with-doctor',
+                            'Completed': 'badge-completed'
+                        }[patient.status] || 'bg-gray-500';
+
+                        const patientItem = document.createElement('div');
+                        patientItem.className = 'bg-gray-800 p-4 rounded-md flex items-center justify-between transition-all duration-200 hover:shadow-lg';
+                        patientItem.innerHTML = `
+                            <div class="flex items-center space-x-4">
+                                <div class="text-xl font-bold text-gray-400">${index + 1}</div>
+                                <div>
+                                    <p class="font-semibold text-white">${patient.name}</p>
+                                    <p class="text-sm text-gray-400">Queue #: ${index + 1}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="status-badge ${statusBadgeClass}">${patient.status}</span>
+                                <select data-id="${patient.id}" class="status-select bg-gray-700 text-sm py-1 px-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                    <option value="Waiting" ${patient.status === 'Waiting' ? 'selected' : ''}>Waiting</option>
+                                    <option value="With Doctor" ${patient.status === 'With Doctor' ? 'selected' : ''}>With Doctor</option>
+                                    <option value="Completed" ${patient.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                                </select>
+                                <select data-id="${patient.id}" class="priority-select bg-gray-700 text-sm py-1 px-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                    <option value="Normal" ${patient.priority === 'Normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="Urgent" ${patient.priority === 'Urgent' ? 'selected' : ''}>Urgent</option>
+                                </select>
+                                <button data-id="${patient.id}" class="remove-btn text-red-500 hover:text-red-700 transition-colors duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                        queueListEl.appendChild(patientItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch queue data:', error);
+                queueListEl.innerHTML = '<p class="text-red-500 text-center">Failed to load queue data. Is the backend running?</p>';
+            }
+        }
+
+        // Function to render the doctors list for management
+        async function renderDoctors() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/doctors`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                doctorsData = await response.json(); // Store data in global variable
+                
+                doctorsListEl.innerHTML = '';
+                if (doctorsData.length === 0) {
+                    doctorsListEl.innerHTML = '<p class="text-gray-400 text-center">No doctors found.</p>';
+                } else {
+                    doctorsData.forEach(doctor => {
+                        const statusBadgeClass = {
+                            'Available': 'badge-available',
+                            'Busy': 'badge-busy',
+                            'Off Duty': 'badge-off-duty'
+                        }[doctor.status] || 'bg-gray-500';
+                        
+                        const doctorItem = document.createElement('div');
+                        doctorItem.className = 'bg-gray-800 p-4 rounded-md flex items-center justify-between transition-all duration-200 hover:shadow-lg';
+                        doctorItem.innerHTML = `
+                            <div class="flex items-center space-x-4">
+                                <div>
+                                    <p class="font-semibold text-white">${doctor.name}</p>
+                                    <p class="text-sm text-gray-400">${doctor.specialization} - ${doctor.location}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="status-badge ${statusBadgeClass}">${doctor.status}</span>
+                                <select data-id="${doctor.id}" class="status-select-doctor bg-gray-700 text-sm py-1 px-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                    <option value="Available" ${doctor.status === 'Available' ? 'selected' : ''}>Available</option>
+                                    <option value="Busy" ${doctor.status === 'Busy' ? 'selected' : ''}>Busy</option>
+                                    <option value="Off Duty" ${doctor.status === 'Off Duty' ? 'selected' : ''}>Off Duty</option>
+                                </select>
+                                <button data-id="${doctor.id}" class="delete-doctor-btn text-red-500 hover:text-red-700 transition-colors duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                        doctorsListEl.appendChild(doctorItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch doctor data:', error);
+                doctorsListEl.innerHTML = '<p class="text-red-500 text-center">Failed to load doctor data. Is the backend running?</p>';
+            }
+        }
+
+        // Function to render the appointments list
+        async function renderAppointments() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/appointments`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const appointments = await response.json();
+                
+                appointmentsListEl.innerHTML = '';
+                if (appointments.length === 0) {
+                    appointmentsListEl.innerHTML = '<p class="text-gray-400 text-center">No appointments booked.</p>';
+                } else {
+                    appointments.forEach(appointment => {
+                        const statusBadgeClass = {
+                            'Booked': 'badge-booked',
+                            'Completed': 'badge-completed',
+                            'Canceled': 'badge-off-duty'
+                        }[appointment.status] || 'bg-gray-500';
+                        
+                        // Find the doctor's name using the global doctorsData
+                        const doctor = doctorsData.find(d => d.id === appointment.doctorId);
+                        const doctorName = doctor ? doctor.name : 'N/A';
+
+                        const appointmentItem = document.createElement('div');
+                        appointmentItem.className = 'bg-gray-800 p-4 rounded-md flex items-center justify-between transition-all duration-200 hover:shadow-lg';
+                        appointmentItem.innerHTML = `
+                            <div class="flex items-center space-x-4">
+                                <div>
+                                    <p class="font-semibold text-white">${appointment.patientName}</p>
+                                    <p class="text-sm text-gray-400">Dr. ${doctorName}</p>
+                                    <p class="text-xs text-gray-500">${appointment.date} at ${appointment.time}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="status-badge ${statusBadgeClass}">${appointment.status}</span>
+                                <button data-id="${appointment.id}" class="cancel-appointment-btn text-red-500 hover:text-red-700 transition-colors duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                        appointmentsListEl.appendChild(appointmentItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch appointments data:', error);
+                appointmentsListEl.innerHTML = '<p class="text-red-500 text-center">Failed to load appointments. Is the backend running?</p>';
+            }
+        }
+        
+        // Populate the doctor select dropdown for appointments
+        async function populateDoctorSelect() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/doctors`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                doctorsData = await response.json();
+                
+                appointmentDoctorSelect.innerHTML = '<option value="">Select Doctor</option>';
+                doctorsData.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.id;
+                    option.textContent = `Dr. ${doctor.name} (${doctor.specialization})`;
+                    appointmentDoctorSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to populate doctor select:', error);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // In a real app, you would validate credentials with the backend.
+            // For this simulation, we just hide the login and show the dashboard.
+            loginScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            // Initial render of data on login
+            await populateDoctorSelect();
+            await renderQueue();
+            await renderDoctors();
+            await renderAppointments();
+        });
+
+        // Tab switching
+        queueTab.addEventListener('click', () => showSection('queue-section'));
+        doctorsTab.addEventListener('click', () => showSection('doctors-section'));
+        appointmentsTab.addEventListener('click', () => showSection('appointments-section'));
+
+        // Add event listener for the "Add New Patient" button
+        addPatientBtn.addEventListener('click', async () => {
+            const newPatientName = patientNameInput.value.trim();
+            if (newPatientName) {
+                try {
+                    await fetch(`${API_BASE_URL}/patients`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: newPatientName }),
+                    });
+                    patientNameInput.value = '';
+                    renderQueue();
+                } catch (error) {
+                    console.error('Error adding patient:', error);
+                }
+            }
+        });
+
+        // Event listener for queue item actions (status, priority, remove)
+        queueListEl.addEventListener('change', async (event) => {
+            const target = event.target;
+            const patientId = target.getAttribute('data-id');
+            if (!patientId) return;
+
+            try {
+                const updateData = {};
+                if (target.classList.contains('status-select')) {
+                    updateData.status = target.value;
+                } else if (target.classList.contains('priority-select')) {
+                    updateData.priority = target.value;
+                }
+                await fetch(`${API_BASE_URL}/patients/${patientId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData),
+                });
+                renderQueue();
+            } catch (error) {
+                console.error('Error updating patient:', error);
+            }
+        });
+
+        queueListEl.addEventListener('click', async (event) => {
+            if (event.target.closest('.remove-btn')) {
+                const patientId = event.target.closest('.remove-btn').getAttribute('data-id');
+                try {
+                    await fetch(`${API_BASE_URL}/patients/${patientId}`, { method: 'DELETE' });
+                    renderQueue();
+                } catch (error) {
+                    console.error('Error removing patient:', error);
+                }
+            }
+        });
+
+        // Add new doctor
+        addDoctorBtn.addEventListener('click', async () => {
+            const name = doctorNameInput.value.trim();
+            const specialization = specializationInput.value.trim();
+            const gender = genderInput.value;
+            const location = locationInput.value.trim();
+            
+            if (name && specialization && gender && location) {
+                try {
+                    await fetch(`${API_BASE_URL}/doctors`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, specialization, gender, location }),
+                    });
+                    // Clear inputs
+                    doctorNameInput.value = '';
+                    specializationInput.value = '';
+                    genderInput.value = '';
+                    locationInput.value = '';
+                    renderDoctors();
+                    populateDoctorSelect(); // Update the doctor dropdown
+                } catch (error) {
+                    console.error('Error adding doctor:', error);
+                }
+            }
+        });
+
+        // Event listener for doctor status change and delete
+        doctorsListEl.addEventListener('change', async (event) => {
+            const target = event.target;
+            const doctorId = target.getAttribute('data-id');
+            if (!doctorId) return;
+
+            if (target.classList.contains('status-select-doctor')) {
+                try {
+                    await fetch(`${API_BASE_URL}/doctors/${doctorId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: target.value }),
+                    });
+                    renderDoctors();
+                } catch (error) {
+                    console.error('Error updating doctor status:', error);
+                }
+            }
+        });
+        
+        doctorsListEl.addEventListener('click', async (event) => {
+            const target = event.target.closest('button');
+            if (!target) return;
+
+            const doctorId = target.getAttribute('data-id');
+            if (!doctorId) return;
+
+            if (target.classList.contains('delete-doctor-btn')) {
+                try {
+                    await fetch(`${API_BASE_URL}/doctors/${doctorId}`, { method: 'DELETE' });
+                    renderDoctors();
+                    populateDoctorSelect();
+                } catch (error) {
+                    console.error('Error deleting doctor:', error);
+                }
+            }
+        });
+        
+        // Book a new appointment
+        bookAppointmentBtn.addEventListener('click', async () => {
+            const patientName = appointmentPatientInput.value.trim();
+            const doctorId = appointmentDoctorSelect.value;
+            const date = appointmentDateInput.value;
+            const time = appointmentTimeInput.value;
+
+            if (patientName && doctorId && date && time) {
+                try {
+                    await fetch(`${API_BASE_URL}/appointments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ patientName, doctorId, date, time }),
+                    });
+                    // Clear inputs
+                    appointmentPatientInput.value = '';
+                    appointmentDoctorSelect.value = '';
+                    appointmentDateInput.value = '';
+                    appointmentTimeInput.value = '';
+                    renderAppointments();
+                } catch (error) {
+                    console.error('Error booking appointment:', error);
+                }
+            }
+        });
+
+        // Event listener for appointment actions (cancel)
+        appointmentsListEl.addEventListener('click', async (event) => {
+            const target = event.target.closest('button');
+            if (!target) return;
+
+            const appointmentId = target.getAttribute('data-id');
+            if (!appointmentId) return;
+
+            if (target.classList.contains('cancel-appointment-btn')) {
+                try {
+                    await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, { method: 'DELETE' });
+                    renderAppointments();
+                } catch (error) {
+                    console.error('Error canceling appointment:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
